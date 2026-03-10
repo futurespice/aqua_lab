@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Расходные материалы - Aqualab Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-box-seam"></i> Расходные материалы
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'consumable_create' %}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Добавить материал
+        </a>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Поиск</label>
+                <input type="text" name="search" class="form-control" placeholder="Название, описание..." value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Категория</label>
+                <select name="category" class="form-select">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category.id|stringformat:"s" == category_id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Быстрые фильтры</label>
+                <div class="btn-group w-100" role="group">
+                    <input type="checkbox" class="btn-check" id="low_stock_cons" name="low_stock" value="1" {% if request.GET.low_stock %}checked{% endif %}>
+                    <label class="btn btn-outline-danger" for="low_stock_cons">Низкий остаток</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Поиск
+                </button>
+                <a href="{% url 'consumable_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Сбросить
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Таблица -->
+<div class="card">
+    <div class="card-body p-0">
+        {% if consumables %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Название</th>
+                        <th>Категория</th>
+                        <th>Описание</th>
+                        <th>Количество</th>
+                        <th>Цена</th>
+                        <th>Общая стоимость</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for consumable in consumables %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'consumable_detail' consumable.id %}" class="text-decoration-none">
+                                <strong>{{ consumable.name }}</strong>
+                            </a>
+                        </td>
+                        <td>
+                            {% if consumable.category %}
+                                <span class="badge bg-secondary">{{ consumable.category.name }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ consumable.description|truncatewords:10|default:"-" }}</td>
+                        <td>
+                            {% if consumable.is_low_stock %}
+                                <span class="low-stock">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    {{ consumable.quantity }} {{ consumable.get_unit_display }}
+                                </span>
+                            {% else %}
+                                <span class="normal-stock">
+                                    {{ consumable.quantity }} {{ consumable.get_unit_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ consumable.price|floatformat:2 }} c</td>
+                        <td><strong>{{ consumable.total_value|floatformat:2 }} c</strong></td>
+                        <td>
+                            {% if consumable.is_low_stock %}
+                                <span class="badge bg-warning">Низкий остаток</span>
+                            {% else %}
+                                <span class="badge bg-success">OK</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'consumable_detail' consumable.id %}" class="btn btn-outline-primary" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'consumable_update' consumable.id %}" class="btn btn-outline-warning" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'consumable_delete' consumable.id %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <p class="mt-2">Расходные материалы не найдены</p>
+            <a href="{% url 'consumable_create' %}" class="btn btn-success">
+                <i class="bi bi-plus-lg"></i> Добавить первый материал
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

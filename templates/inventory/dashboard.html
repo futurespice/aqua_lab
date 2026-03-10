@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель управления - Aqualab Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-speedometer2"></i> Панель управления
+    </h1>
+</div>
+
+<!-- Алерты -->
+{% if alerts %}
+<div class="row mb-4">
+    <div class="col-12">
+        {% for alert in alerts %}
+        <div class="alert alert-{{ alert.type }} alert-dismissible fade show" role="alert">
+            <strong>{{ alert.icon }}</strong> {{ alert.text }}
+            <a href="{{ alert.url }}" class="alert-link ms-2">Просмотреть</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-uppercase mb-1" style="font-size: 0.85rem;">Медикаменты</div>
+                        <h2 class="mb-0">{{ total_medications }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-capsule"></i>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'medication_list' %}" class="card-footer text-white d-flex align-items-center justify-content-between">
+                <span>Просмотреть все</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-uppercase mb-1" style="font-size: 0.85rem;">Расходные материалы</div>
+                        <h2 class="mb-0">{{ total_consumables }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'consumable_list' %}" class="card-footer text-white d-flex align-items-center justify-content-between">
+                <span>Просмотреть все</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-uppercase mb-1" style="font-size: 0.85rem;">Низкий остаток</div>
+                        <h2 class="mb-0">{{ low_stock_medications|add:low_stock_consumables }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'medication_list' %}?low_stock=1" class="card-footer text-white d-flex align-items-center justify-content-between">
+                <span>Просмотреть</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-uppercase mb-1" style="font-size: 0.85rem;">Общая стоимость</div>
+                        <h2 class="mb-0">{{ total_inventory_value|floatformat:0 }} c</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'reports' %}" class="card-footer text-white d-flex align-items-center justify-content-between">
+                <span>Отчеты</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Дополнительная статистика -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-hourglass-split" style="font-size: 2.5rem; color: #ffc107;"></i>
+                <h3 class="mt-2 mb-0">{{ expiring_soon }}</h3>
+                <p class="text-muted mb-0">Истекает срок годности (30 дней)</p>
+                <a href="{% url 'medication_list' %}?expiring=1" class="btn btn-outline-warning btn-sm mt-2">
+                    Просмотреть
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-x-circle" style="font-size: 2.5rem; color: #dc3545;"></i>
+                <h3 class="mt-2 mb-0">{{ expired }}</h3>
+                <p class="text-muted mb-0">Просроченных медикаментов</p>
+                <a href="{% url 'medication_list' %}?expired=1" class="btn btn-outline-danger btn-sm mt-2">
+                    Просмотреть
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-arrow-down-up" style="font-size: 2.5rem; color: #17a2b8;"></i>
+                <h3 class="mt-2 mb-0">
+                    <a href="{% url 'transaction_create' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-lg"></i> Новая операция
+                    </a>
+                </h3>
+                <p class="text-muted mb-0 mt-2">Приход / Расход / Списание</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Последние операции -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            <i class="bi bi-clock-history"></i> Последние операции
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if recent_transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Тип операции</th>
+                        <th>Товар</th>
+                        <th>Количество</th>
+                        <th>Сумма</th>
+                        <th>Пользователь</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in recent_transactions %}
+                    <tr>
+                        <td>{{ transaction.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            {% if transaction.transaction_type == 'in' %}
+                                <span class="badge bg-success">{{ transaction.get_transaction_type_display }}</span>
+                            {% elif transaction.transaction_type == 'out' %}
+                                <span class="badge bg-primary">{{ transaction.get_transaction_type_display }}</span>
+                            {% elif transaction.transaction_type == 'write_off' %}
+                                <span class="badge bg-danger">{{ transaction.get_transaction_type_display }}</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ transaction.get_transaction_type_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if transaction.medication %}
+                                <i class="bi bi-capsule text-primary"></i> {{ transaction.medication.name }}
+                            {% else %}
+                                <i class="bi bi-box-seam text-success"></i> {{ transaction.consumable.name }}
+                            {% endif %}
+                        </td>
+                        <td>{{ transaction.quantity }}</td>
+                        <td>{{ transaction.total_amount|floatformat:2 }} c</td>
+                        <td>{{ transaction.user.username }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <p class="mt-2">Операции отсутствуют</p>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-footer bg-white">
+        <a href="{% url 'transaction_list' %}" class="btn btn-outline-primary btn-sm">
+            Посмотреть все операции <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}

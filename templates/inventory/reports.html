@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Отчеты - Aqualab Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-graph-up"></i> Отчеты
+    </h1>
+</div>
+
+<!-- Общая статистика -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-capsule" style="font-size: 2.5rem; color: #0066cc;"></i>
+                <h3 class="mt-2 mb-0">{{ stats.total_medications }}</h3>
+                <p class="text-muted mb-0">Медикаментов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-box-seam" style="font-size: 2.5rem; color: #28a745;"></i>
+                <h3 class="mt-2 mb-0">{{ stats.total_consumables }}</h3>
+                <p class="text-muted mb-0">Расходных материалов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-arrow-left-right" style="font-size: 2.5rem; color: #17a2b8;"></i>
+                <h3 class="mt-2 mb-0">{{ stats.total_transactions }}</h3>
+                <p class="text-muted mb-0">Всего операций</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem; color: #ffc107;"></i>
+                <h3 class="mt-2 mb-0">{{ stats.low_stock_items }}</h3>
+                <p class="text-muted mb-0">С низким остатком</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтр по датам -->
+<div class="card mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-calendar-range"></i> Фильтр по периоду</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">{{ form.date_from.label }}</label>
+                {{ form.date_from }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">{{ form.date_to.label }}</label>
+                {{ form.date_to }}
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="d-flex gap-2 w-100">
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <i class="bi bi-search"></i> Применить
+                    </button>
+                    <a href="{% url 'reports' %}" class="btn btn-secondary flex-fill">
+                        <i class="bi bi-x-lg"></i> Сбросить
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Быстрые ссылки -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0"><i class="bi bi-x-circle"></i> Просроченные медикаменты</h6>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-between">
+                <p class="text-muted">Медикаменты с истёкшим сроком годности, требующие списания.</p>
+                <a href="{% url 'medication_list' %}?expired=1" class="btn btn-outline-danger">
+                    <i class="bi bi-eye"></i> Просмотреть
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-warning">
+                <h6 class="mb-0"><i class="bi bi-hourglass-split"></i> Истекает срок годности</h6>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-between">
+                <p class="text-muted">Медикаменты, срок годности которых истекает в течение 30 дней.</p>
+                <a href="{% url 'medication_list' %}?expiring=1" class="btn btn-outline-warning">
+                    <i class="bi bi-eye"></i> Просмотреть
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-bar-chart-line"></i> Низкий остаток</h6>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-between">
+                <p class="text-muted">Товары, количество которых ниже минимального порога.</p>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'medication_list' %}?low_stock=1" class="btn btn-outline-info flex-fill">Медикаменты</a>
+                    <a href="{% url 'consumable_list' %}?low_stock=1" class="btn btn-outline-info flex-fill">Расходники</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Все операции -->
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-list-ul"></i> Журнал операций</h5>
+        <a href="{% url 'transaction_list' %}" class="btn btn-outline-primary btn-sm">
+            Открыть полный журнал <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="card-body text-center py-4 text-muted">
+        <i class="bi bi-arrow-left-right" style="font-size: 2.5rem;"></i>
+        <p class="mt-2 mb-3">Просмотрите все операции прихода, расхода и списания в журнале операций.</p>
+        <a href="{% url 'transaction_list' %}" class="btn btn-primary">
+            <i class="bi bi-table"></i> Перейти к журналу операций
+        </a>
+    </div>
+</div>
+{% endblock %}

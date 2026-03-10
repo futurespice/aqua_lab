@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }} - Aqualab Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-capsule"></i> {{ title }}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'medication_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">Название *</label>
+                            {{ form.name|add_class:"form-control" }}
+                            {% if form.name.errors %}
+                                <div class="text-danger mt-1">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">Категория</label>
+                            {{ form.category|add_class:"form-select" }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.manufacturer.id_for_label }}" class="form-label">Производитель</label>
+                            {{ form.manufacturer|add_class:"form-control" }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.active_ingredient.id_for_label }}" class="form-label">Действующее вещество</label>
+                            {{ form.active_ingredient|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.dosage.id_for_label }}" class="form-label">Дозировка</label>
+                            {{ form.dosage|add_class:"form-control" }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.unit.id_for_label }}" class="form-label">Единица измерения *</label>
+                            {{ form.unit|add_class:"form-select" }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3">Остатки и цена</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.quantity.id_for_label }}" class="form-label">Количество на складе *</label>
+                            {{ form.quantity|add_class:"form-control" }}
+                            {% if form.quantity.errors %}
+                                <div class="text-danger mt-1">{{ form.quantity.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.min_quantity.id_for_label }}" class="form-label">Минимальное количество</label>
+                            {{ form.min_quantity|add_class:"form-control" }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.price.id_for_label }}" class="form-label">Цена за единицу (₽)</label>
+                            {{ form.price|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3">Срок годности и хранение</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.expiry_date.id_for_label }}" class="form-label">Срок годности</label>
+                            {{ form.expiry_date|add_class:"form-control" }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.storage_conditions.id_for_label }}" class="form-label">Условия хранения</label>
+                            {{ form.storage_conditions|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">Примечания</label>
+                        {{ form.notes|add_class:"form-control" }}
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        {{ form.is_active|add_class:"form-check-input" }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            Активный
+                        </label>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Сохранить
+                        </button>
+                        <a href="{% url 'medication_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-lg"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head><title>Screenshot Capture</title></head>
+<body>
+<h2>Capturing screenshots...</h2>
+<div id="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const pages = [
+  {url: '/', name: 'screenshot_dashboard'},
+  {url: '/medications/', name: 'screenshot_medications'},
+  {url: '/medications/create/', name: 'screenshot_medication_form'},
+  {url: '/transactions/create/', name: 'screenshot_transaction_form'},
+  {url: '/reports/', name: 'screenshot_reports'},
+  {url: '/api/docs/', name: 'screenshot_api_docs'},
+];
+
+async function captureInIframe(url, name) {
+  return new Promise((resolve) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.width = '1280px';
+    iframe.style.height = '800px';
+    iframe.style.position = 'fixed';
+    iframe.style.top = '0';
+    iframe.style.left = '0';
+    iframe.style.zIndex = '9999';
+    iframe.src = url;
+    iframe.onload = async () => {
+      await new Promise(r => setTimeout(r, 1500));
+      try {
+        const canvas = await html2canvas(iframe.contentDocument.body, {
+          scale: 1, useCORS: true, allowTaint: true,
+          width: 1280, windowWidth: 1280
+        });
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = name + '.png';
+        a.click();
+        document.getElementById('status').innerHTML += '<br>✅ ' + name;
+      } catch(e) {
+        document.getElementById('status').innerHTML += '<br>❌ ' + name + ': ' + e.message;
+      }
+      document.body.removeChild(iframe);
+      await new Promise(r => setTimeout(r, 500));
+      resolve();
+    };
+    document.body.appendChild(iframe);
+  });
+}
+
+(async () => {
+  for (const p of pages) {
+    await captureInIframe(p.url, p.name);
+  }
+  document.getElementById('status').innerHTML += '<br><b>Done!</b>';
+})();
+</script>
+</body>
+</html>
