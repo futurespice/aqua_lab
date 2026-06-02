@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление категории - Aqualab Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-trash"></i> Удаление категории
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Подтверждение удаления</h5>
+            </div>
+            <div class="card-body">
+                <p class="fs-5">
+                    Вы уверены, что хотите удалить категорию <strong>«{{ category.name }}»</strong>?
+                </p>
+
+                {% if med_count or cons_count %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    С этой категорией связано: <strong>{{ med_count }}</strong> медикаментов и
+                    <strong>{{ cons_count }}</strong> расходников. После удаления у них останется
+                    пустая категория (сами товары не удаляются).
+                </div>
+                {% else %}
+                <p class="text-muted">Категория не используется ни одним товаром.</p>
+                {% endif %}
+
+                <form method="post" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Да, удалить
+                    </button>
+                    <a href="{% url 'category_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> Отмена
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

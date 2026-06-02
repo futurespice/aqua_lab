@@ -62,6 +62,31 @@
                         {% endif %}
                     </div>
 
+                    <!-- Реквизиты партии (для прихода/корректировки медикамента) -->
+                    <div class="mb-3 border rounded p-3 bg-light" id="batch-block">
+                        <div class="fw-bold mb-2"><i class="bi bi-box2"></i> Партия (лот)</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">{{ form.lot_number.label }}</label>
+                                {{ form.lot_number }}
+                                {% if form.lot_number.errors %}
+                                    <div class="text-danger small">{{ form.lot_number.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">{{ form.expiry_date.label }}</label>
+                                {{ form.expiry_date }}
+                                {% if form.expiry_date.errors %}
+                                    <div class="text-danger small">{{ form.expiry_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="form-text">
+                            Заполняется при приходе медикамента (создаётся партия с этим лотом и сроком).
+                            Для расхода/списания и для расходных материалов не требуется.
+                        </div>
+                    </div>
+
                     <!-- Количество и цена -->
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -118,8 +143,10 @@
     // Показывать/скрывать поля медикамент/расходник в зависимости от выбора
     function toggleItemFields() {
         const itemType = document.getElementById('id_item_type').value;
+        const txType = document.getElementById('id_transaction_type').value;
         const medBlock = document.getElementById('medication-block');
         const conBlock = document.getElementById('consumable-block');
+        const batchBlock = document.getElementById('batch-block');
 
         if (itemType === 'medication') {
             medBlock.style.display = 'block';
@@ -131,9 +158,14 @@
             medBlock.style.display = 'block';
             conBlock.style.display = 'block';
         }
+
+        // Реквизиты партии нужны только при приходе/корректировке медикамента
+        const showBatch = (itemType === 'medication') && (txType === 'in' || txType === 'adjustment');
+        batchBlock.style.display = showBatch ? 'block' : 'none';
     }
 
     document.getElementById('id_item_type').addEventListener('change', toggleItemFields);
+    document.getElementById('id_transaction_type').addEventListener('change', toggleItemFields);
     // Вызвать сразу при загрузке
     toggleItemFields();
 </script>

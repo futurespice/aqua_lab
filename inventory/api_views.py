@@ -10,10 +10,10 @@ from django.db.models import Q, F
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import Category, Supplier, Medication, ConsumableMaterial, Transaction
+from .models import Category, Supplier, Medication, ConsumableMaterial, Transaction, Batch
 from .serializers import (
     CategorySerializer, SupplierSerializer, MedicationSerializer,
-    ConsumableMaterialSerializer, TransactionSerializer
+    ConsumableMaterialSerializer, TransactionSerializer, BatchSerializer
 )
 
 
@@ -83,6 +83,20 @@ class MedicationViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class BatchViewSet(viewsets.ReadOnlyModelViewSet):
+    """API для партий (лотов) медикаментов — только чтение.
+
+    Партии создаются автоматически при приходе медикамента и расходуются по FEFO.
+    """
+    queryset = Batch.objects.select_related('medication', 'supplier').all()
+    serializer_class = BatchSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['medication', 'supplier']
+    ordering_fields = ['expiry_date', 'received_at', 'quantity_remaining']
+    ordering = ['expiry_date']
+
+
 class ConsumableMaterialViewSet(viewsets.ModelViewSet):
     """API для расходных материалов"""
     queryset = ConsumableMaterial.objects.select_related('category').all()
@@ -100,6 +114,27 @@ class ConsumableMaterialViewSet(viewsets.ModelViewSet):
         consumables = self.get_queryset().filter(
             is_active=True,
             quantity__lte=F('min_quantity')
+        )
+        serializer = self.get_serializer(consumables, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def expiring_soon(self, request):
+        """Расходники с истекающим сроком годности (30 дней)"""
+        consumables = self.get_queryset().filter(
+            is_active=True,
+            expiry_date__lte=timezone.now().date() + timedelta(days=30),
+            expiry_date__gte=timezone.now().date()
+        )
+        serializer = self.get_serializer(consumables, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def expired(self, request):
+        """Просроченные расходники"""
+        consumables = self.get_queryset().filter(
+            is_active=True,
+            expiry_date__lt=timezone.now().date()
         )
         serializer = self.get_serializer(consumables, many=True)
         return Response(serializer.data)

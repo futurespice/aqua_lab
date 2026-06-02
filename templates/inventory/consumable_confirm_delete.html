@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление расходного материала - Aqualab Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-trash"></i> Удаление расходного материала
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Подтверждение удаления</h5>
+            </div>
+            <div class="card-body">
+                <p class="fs-5">
+                    Вы уверены, что хотите удалить расходный материал <strong>«{{ consumable.name }}»</strong>?
+                </p>
+                <p class="text-muted">
+                    Материал будет деактивирован. История операций сохранится.
+                </p>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    На складе: <strong>{{ consumable.quantity }} {{ consumable.get_unit_display }}</strong>
+                </div>
+
+                <form method="post" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Да, удалить
+                    </button>
+                    <a href="{% url 'consumable_detail' consumable.pk %}" class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> Отмена
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

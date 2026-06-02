@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Об авторе - Aqualab Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-person-badge"></i> Об авторе
+    </h1>
+</div>
+
+<div class="row g-4">
+    <!-- Карточка автора -->
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <img src="{% static 'img/author.png' %}" alt="Жолдошев Абдыгулам"
+                     class="mb-3"
+                     style="width: 160px; height: 160px; border-radius: 50%; object-fit: cover; border: 4px solid #2b3a55;">
+                <h3 class="mb-1">Жолдошев Абдыгулам</h3>
+                <p class="text-muted mb-3">Разработчик системы Aqualab</p>
+                <span class="badge bg-primary">
+                    <i class="bi bi-calendar-event"></i> Дата рождения: 03.05.2005
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контактная информация -->
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-telephone"></i> Контактная информация</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-telephone-fill text-primary me-3 fs-5"></i>
+                        <div>
+                            <div class="text-muted small">Телефон</div>
+                            <a href="tel:+996709522487" class="text-decoration-none fw-semibold">+996-709-522-487</a>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-envelope-fill text-primary me-3 fs-5"></i>
+                        <div>
+                            <div class="text-muted small">E-mail</div>
+                            <a href="mailto:abdygulam03.05@gmail.com" class="text-decoration-none fw-semibold">abdygulam03.05@gmail.com</a>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill text-primary me-3 fs-5"></i>
+                        <div>
+                            <div class="text-muted small">Адрес</div>
+                            <span class="fw-semibold">ул. Шакирова 271/96, 723500, г. Ош, Кыргызстан</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- О системе -->
+<div class="card mt-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-info-circle"></i> О системе</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-2">
+            <strong>Aqualab Inventory Management System</strong> — информационная система учёта
+            медикаментов и расходных материалов для лаборатории Aqualab.
+        </p>
+        <p class="text-muted mb-0">
+            Версия 1.0.0 · Django 5 · Django REST Framework · Bootstrap 5
+        </p>
+    </div>
+</div>
+{% endblock %}

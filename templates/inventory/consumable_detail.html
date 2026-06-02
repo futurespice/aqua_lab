@@ -22,6 +22,18 @@
     </div>
 </div>
 
+{% if consumable.is_expired %}
+<div class="alert alert-danger">
+    <i class="bi bi-x-circle-fill"></i>
+    <strong>Внимание!</strong> Срок годности материала истёк {{ consumable.expiry_date|date:"d.m.Y" }}
+</div>
+{% elif consumable.is_expiring_soon %}
+<div class="alert alert-warning">
+    <i class="bi bi-hourglass-split"></i>
+    <strong>Предупреждение!</strong> Срок годности истекает {{ consumable.expiry_date|date:"d.m.Y" }}
+</div>
+{% endif %}
+
 {% if consumable.is_low_stock %}
 <div class="alert alert-warning">
     <i class="bi bi-exclamation-triangle-fill"></i>
@@ -167,6 +179,26 @@
                 </table>
             </div>
         </div>
+
+        {% if consumable.expiry_date %}
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Срок годности</h5>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="{% if consumable.is_expired %}text-danger{% elif consumable.is_expiring_soon %}text-warning{% endif %}">
+                    {{ consumable.expiry_date|date:"d.m.Y" }}
+                </h3>
+                {% if consumable.is_expired %}
+                    <p class="text-danger mb-0"><i class="bi bi-x-circle-fill"></i> Просрочен</p>
+                {% elif consumable.is_expiring_soon %}
+                    <p class="text-warning mb-0"><i class="bi bi-hourglass-split"></i> Истекает скоро</p>
+                {% else %}
+                    <p class="text-success mb-0"><i class="bi bi-check-circle-fill"></i> Годен</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
         <div class="card">
             <div class="card-header bg-white">

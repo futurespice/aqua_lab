@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Категории - Aqualab Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-tags"></i> Категории
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'category_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Добавить категорию
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if categories %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Название</th>
+                        <th>Описание</th>
+                        <th class="text-center">Медикаментов</th>
+                        <th class="text-center">Расходников</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr>
+                        <td><strong>{{ category.name }}</strong></td>
+                        <td class="text-muted">{{ category.description|default:"—"|truncatechars:80 }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'medication_list' %}?category={{ category.id }}" class="badge bg-primary text-decoration-none">
+                                {{ category.med_count }}
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'consumable_list' %}?category={{ category.id }}" class="badge bg-success text-decoration-none">
+                                {{ category.cons_count }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'category_update' category.id %}" class="btn btn-outline-warning" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'category_delete' category.id %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-tags" style="font-size: 3rem;"></i>
+            <p class="mt-2">Категории не найдены</p>
+            <a href="{% url 'category_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Добавить первую категорию
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

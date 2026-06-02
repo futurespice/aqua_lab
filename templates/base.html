@@ -191,21 +191,39 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'consumable' in request.path %}active{% endif %}" 
+                    <a class="nav-link {% if 'consumable' in request.path %}active{% endif %}"
                        href="{% url 'consumable_list' %}">
                         <i class="bi bi-box-seam"></i> Расходные материалы
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'transaction' in request.path %}active{% endif %}" 
+                    <a class="nav-link {% if 'categor' in request.path %}active{% endif %}"
+                       href="{% url 'category_list' %}">
+                        <i class="bi bi-tags"></i> Категории
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'supplier' in request.path %}active{% endif %}"
+                       href="{% url 'supplier_list' %}">
+                        <i class="bi bi-truck"></i> Поставщики
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'transaction' in request.path %}active{% endif %}"
                        href="{% url 'transaction_list' %}">
                         <i class="bi bi-arrow-left-right"></i> Операции
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'report' in request.path %}active{% endif %}" 
+                    <a class="nav-link {% if 'report' in request.path %}active{% endif %}"
                        href="{% url 'reports' %}">
                         <i class="bi bi-graph-up"></i> Отчеты
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
+                       href="{% url 'about' %}">
+                        <i class="bi bi-person-badge"></i> Об авторе
                     </a>
                 </li>
                 <li class="nav-item mt-3">
@@ -214,11 +232,6 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/" target="_blank">
                         <i class="bi bi-gear"></i> Админ-панель
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/api/docs/" target="_blank">
-                        <i class="bi bi-file-code"></i> API документация
                     </a>
                 </li>
             </ul>

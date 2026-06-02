@@ -67,6 +67,7 @@
                         <th>Сумма</th>
                         <th>Поставщик</th>
                         <th>Пользователь</th>
+                        <th>Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -117,6 +118,16 @@
                         <td>{{ transaction.total_amount|floatformat:2 }} c</td>
                         <td>{{ transaction.supplier.name|default:"&mdash;" }}</td>
                         <td>{{ transaction.user.username|default:"&mdash;" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'transaction_update' transaction.id %}" class="btn btn-outline-warning" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'transaction_delete' transaction.id %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

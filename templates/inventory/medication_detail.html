@@ -117,6 +117,67 @@
             </div>
         </div>
         
+        <!-- Партии (лоты) -->
+        <div class="card mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-box2"></i> Партии (лоты)</h5>
+                <span class="badge bg-secondary" title="First-Expired-First-Out — первой расходуется партия с ближайшим сроком">
+                    Списание по FEFO
+                </span>
+            </div>
+            <div class="card-body p-0">
+                {% if batches %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Лот</th>
+                                <th>Срок годности</th>
+                                <th class="text-end">Поступило</th>
+                                <th class="text-end">Остаток</th>
+                                <th class="text-end">Цена закупки</th>
+                                <th>Поставщик</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in batches %}
+                            <tr>
+                                <td>{{ b.lot_number|default:"—" }}</td>
+                                <td>
+                                    {% if b.expiry_date %}
+                                        {% if b.is_expired %}
+                                            <span class="expired">{{ b.expiry_date|date:"d.m.Y" }} <i class="bi bi-x-circle-fill"></i></span>
+                                        {% elif b.is_expiring_soon %}
+                                            <span class="expiring-soon">{{ b.expiry_date|date:"d.m.Y" }} <i class="bi bi-hourglass-split"></i></span>
+                                        {% else %}
+                                            {{ b.expiry_date|date:"d.m.Y" }}
+                                        {% endif %}
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="text-end">{{ b.quantity_received }}</td>
+                                <td class="text-end">
+                                    {% if b.quantity_remaining > 0 %}
+                                        <strong>{{ b.quantity_remaining }}</strong>
+                                    {% else %}
+                                        <span class="text-muted">0 (израсходована)</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">{{ b.price|floatformat:2 }} c</td>
+                                <td>{{ b.supplier.name|default:"—" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-box2" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Партий нет. Запас пополняется приходом — операцией «Приход».</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- История операций -->
         <div class="card">
             <div class="card-header bg-white">

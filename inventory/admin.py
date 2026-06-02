@@ -3,7 +3,19 @@
 """
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Category, Supplier, Medication, ConsumableMaterial, Transaction
+from .models import Category, Supplier, Medication, ConsumableMaterial, Transaction, Batch
+
+
+class BatchInline(admin.TabularInline):
+    """Партии медикамента (только просмотр — остаток меняется операциями)"""
+    model = Batch
+    extra = 0
+    can_delete = False
+    fields = ['lot_number', 'expiry_date', 'quantity_received', 'quantity_remaining', 'price', 'supplier', 'received_at']
+    readonly_fields = fields
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Category)
@@ -41,7 +53,9 @@ class MedicationAdmin(admin.ModelAdmin):
     search_fields = ['name', 'manufacturer', 'active_ingredient']
     list_filter = ['category', 'is_active', 'expiry_date', 'unit']
     date_hierarchy = 'created_at'
-    
+    inlines = [BatchInline]
+    readonly_fields = ['quantity', 'expiry_date']
+
     fieldsets = (
         ('Основная информация', {
             'fields': ('name', 'category', 'is_active')
@@ -154,9 +168,22 @@ class TransactionAdmin(admin.ModelAdmin):
             return format_html('<strong>🔬</strong> {}', obj.consumable.name)
         return '-'
     item_display.short_description = 'Товар'
-    
+
     def save_model(self, request, obj, form, change):
         """Автоматическое сохранение пользователя"""
         if not obj.pk:
             obj.user = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(Batch)
+class BatchAdmin(admin.ModelAdmin):
+    list_display = [
+        'medication', 'lot_number', 'expiry_date',
+        'quantity_remaining', 'quantity_received', 'price', 'supplier'
+    ]
+    search_fields = ['lot_number', 'medication__name']
+    list_filter = ['expiry_date', 'supplier']
+    date_hierarchy = 'received_at'
+    # Количество партии меняется операциями (FEFO), вручную не редактируется
+    readonly_fields = ['quantity_received', 'quantity_remaining']

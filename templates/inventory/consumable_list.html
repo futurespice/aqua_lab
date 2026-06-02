@@ -38,6 +38,12 @@
                 <div class="btn-group w-100" role="group">
                     <input type="checkbox" class="btn-check" id="low_stock_cons" name="low_stock" value="1" {% if request.GET.low_stock %}checked{% endif %}>
                     <label class="btn btn-outline-danger" for="low_stock_cons">Низкий остаток</label>
+
+                    <input type="checkbox" class="btn-check" id="expiring_cons" name="expiring" value="1" {% if request.GET.expiring %}checked{% endif %}>
+                    <label class="btn btn-outline-warning" for="expiring_cons">Истекает срок</label>
+
+                    <input type="checkbox" class="btn-check" id="expired_cons" name="expired" value="1" {% if request.GET.expired %}checked{% endif %}>
+                    <label class="btn btn-outline-danger" for="expired_cons">Просрочен</label>
                 </div>
             </div>
             <div class="col-12">
@@ -66,6 +72,7 @@
                         <th>Количество</th>
                         <th>Цена</th>
                         <th>Общая стоимость</th>
+                        <th>Срок годности</th>
                         <th>Статус</th>
                         <th>Действия</th>
                     </tr>
@@ -99,7 +106,22 @@
                         <td>{{ consumable.price|floatformat:2 }} c</td>
                         <td><strong>{{ consumable.total_value|floatformat:2 }} c</strong></td>
                         <td>
-                            {% if consumable.is_low_stock %}
+                            {% if consumable.expiry_date %}
+                                {% if consumable.is_expired %}
+                                    <span class="expired">{{ consumable.expiry_date|date:"d.m.Y" }} <i class="bi bi-x-circle-fill"></i></span>
+                                {% elif consumable.is_expiring_soon %}
+                                    <span class="expiring-soon">{{ consumable.expiry_date|date:"d.m.Y" }} <i class="bi bi-hourglass-split"></i></span>
+                                {% else %}
+                                    {{ consumable.expiry_date|date:"d.m.Y" }}
+                                {% endif %}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% if consumable.is_expired %}
+                                <span class="badge bg-danger">Просрочен</span>
+                            {% elif consumable.is_expiring_soon %}
+                                <span class="badge bg-warning">Истекает</span>
+                            {% elif consumable.is_low_stock %}
                                 <span class="badge bg-warning">Низкий остаток</span>
                             {% else %}
                                 <span class="badge bg-success">OK</span>

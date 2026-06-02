@@ -37,9 +37,12 @@ class MedicationForm(forms.ModelForm):
     """Форма медикамента"""
     class Meta:
         model = Medication
+        # Остаток (quantity) и срок годности (expiry_date) теперь формируются из
+        # партий и пересчитываются автоматически, поэтому в форме их не вводят:
+        # запас пополняется приходами (операциями), каждый приход создаёт партию.
         fields = [
             'name', 'category', 'manufacturer', 'active_ingredient', 'dosage',
-            'unit', 'quantity', 'min_quantity', 'price', 'expiry_date',
+            'unit', 'min_quantity', 'price',
             'storage_conditions', 'notes', 'is_active'
         ]
         widgets = {
@@ -49,10 +52,8 @@ class MedicationForm(forms.ModelForm):
             'active_ingredient': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Действующее вещество'}),
             'dosage': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Например: 500мг'}),
             'unit': forms.Select(attrs={'class': 'form-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'min_quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-            'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'storage_conditions': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -65,7 +66,7 @@ class ConsumableMaterialForm(forms.ModelForm):
         model = ConsumableMaterial
         fields = [
             'name', 'category', 'description', 'unit',
-            'quantity', 'min_quantity', 'price', 'notes', 'is_active'
+            'quantity', 'min_quantity', 'price', 'expiry_date', 'notes', 'is_active'
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название материала'}),
@@ -75,6 +76,7 @@ class ConsumableMaterialForm(forms.ModelForm):
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'min_quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
@@ -86,15 +88,17 @@ class TransactionForm(forms.ModelForm):
         model = Transaction
         fields = [
             'transaction_type', 'item_type', 'medication', 'consumable',
-            'quantity', 'price', 'supplier', 'notes'
+            'quantity', 'price', 'lot_number', 'expiry_date', 'supplier', 'notes'
         ]
         widgets = {
-            'transaction_type': forms.Select(attrs={'class': 'form-select'}),
+            'transaction_type': forms.Select(attrs={'class': 'form-select', 'id': 'id_transaction_type'}),
             'item_type': forms.Select(attrs={'class': 'form-select', 'id': 'id_item_type'}),
             'medication': forms.Select(attrs={'class': 'form-select', 'id': 'id_medication'}),
             'consumable': forms.Select(attrs={'class': 'form-select', 'id': 'id_consumable'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'lot_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Напр. LOT-2026-001'}),
+            'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'supplier': forms.Select(attrs={'class': 'form-select'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
@@ -107,34 +111,41 @@ class TransactionForm(forms.ModelForm):
         consumable = cleaned_data.get('consumable')
         transaction_type = cleaned_data.get('transaction_type')
         quantity = cleaned_data.get('quantity')
-        
+
+        # Количество: для прихода/расхода/списания обязательно больше нуля,
+        # для корректировки допустимо 0 (обнуление остатка)
+        if transaction_type in ('in', 'out', 'write_off') and (not quantity or quantity <= 0):
+            raise ValidationError('Количество должно быть больше нуля')
+
         # Проверка что выбран либо медикамент либо расходник
+        item = None
         if item_type == 'medication':
             if not medication:
                 raise ValidationError('Выберите медикамент')
             if consumable:
                 cleaned_data['consumable'] = None
-            
-            # Проверка достаточности количества при расходе
-            if transaction_type in ['out', 'write_off']:
-                if medication.quantity < quantity:
-                    raise ValidationError(
-                        f'Недостаточно товара на складе. Доступно: {medication.quantity} {medication.get_unit_display()}'
-                    )
-        
+            item = medication
         elif item_type == 'consumable':
             if not consumable:
                 raise ValidationError('Выберите расходный материал')
             if medication:
                 cleaned_data['medication'] = None
-            
-            # Проверка достаточности количества при расходе
-            if transaction_type in ['out', 'write_off']:
-                if consumable.quantity < quantity:
-                    raise ValidationError(
-                        f'Недостаточно материала на складе. Доступно: {consumable.quantity} {consumable.get_unit_display()}'
-                    )
-        
+            item = consumable
+
+        # Проверка достаточности остатка при расходе/списании.
+        # При редактировании операции прежний её эффект сначала откатывается,
+        # поэтому возвращаем его на склад для корректного расчёта доступного остатка.
+        if item is not None and transaction_type in ('out', 'write_off') and quantity:
+            available = item.quantity
+            if self.instance and self.instance.pk:
+                old_item = self.instance.get_item()
+                if old_item is not None and old_item.pk == item.pk:
+                    available = available - self.instance.stock_effect
+            if available < quantity:
+                raise ValidationError(
+                    f'Недостаточно на складе. Доступно: {available} {item.get_unit_display()}'
+                )
+
         return cleaned_data
 
 
