@@ -21,6 +21,22 @@ def _lock_qs(queryset):
     return queryset
 
 
+def _avg_unit_cost(medication):
+    """Средневзвешенная себестоимость единицы по остаткам партий медикамента.
+
+    Возвращает (Σ остаток×цена) / (Σ остаток) или None, если остатка нет.
+    Используется для оценки излишков при корректировке.
+    """
+    agg = medication.batches.aggregate(
+        rem=models.Sum('quantity_remaining'),
+        val=models.Sum(models.F('quantity_remaining') * models.F('price')),
+    )
+    rem = agg['rem'] or Decimal('0')
+    if rem > 0:
+        return (agg['val'] or Decimal('0')) / rem
+    return None
+
+
 class Category(models.Model):
     """Категория товаров"""
     name = models.CharField('Название', max_length=100, unique=True)
@@ -483,6 +499,7 @@ class Transaction(models.Model):
                     self.price = item.price  # авто-себестоимость расхода
                 elif self.transaction_type == 'adjustment':
                     effect = self.quantity - item.quantity
+                    self.price = item.price  # цена операции = себестоимость позиции
                 if item.quantity + effect < 0:
                     effect = -item.quantity
                 self._apply_simple_delta(item, effect)
@@ -526,14 +543,22 @@ class Transaction(models.Model):
                 consumed, movements, _cost = self._consume_fefo(med, -delta)
                 effect = -consumed
             elif delta > 0:
+                # Излишки оцениваем по введённой цене, иначе по средней себестоимости
+                # партий, иначе по базовой цене позиции — но не нулём
+                unit_price = self.price if self.price else _avg_unit_cost(med)
+                if unit_price is None:
+                    unit_price = med.price or Decimal('0')
                 b = Batch.objects.create(
                     medication=med, lot_number=self.lot_number or 'КОРР',
                     expiry_date=self.expiry_date, quantity_received=delta,
-                    quantity_remaining=delta, price=self.price,
+                    quantity_remaining=delta, price=unit_price,
                     supplier=self.supplier, received_at=self.created_at,
                 )
                 movements.append([b.pk, str(delta)])
                 effect = delta
+            # Цена операции корректировки = средняя себестоимость остатка после неё
+            avg_after = _avg_unit_cost(med)
+            self.price = (avg_after if avg_after is not None else (med.price or Decimal('0'))).quantize(Decimal('0.01'))
 
         self.batch_movements = movements
         self.stock_effect = effect
